@@ -1,3 +1,5 @@
+#include "Tensor.h"
+
 template <typename T>
 
 class Tensor {

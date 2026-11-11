@@ -1,3 +1,5 @@
+#include "TA-classMain.cpp"
+
 #ifndef TENSOR_H
 #define TENSOR_H
 // we include the statements above to prevent repeated definitions when the header is included multiple times in one translation unit
@@ -7,6 +9,8 @@
 #include <cstddef>
 #include <limits>
 #include <stdexcept>
+#include <string>
+#include <iostream>
 
 template <typename T> // this makes the WHOLE CLASS a template, so we don't have to redefine T at all
 class Tensor <%
@@ -19,11 +23,11 @@ class Tensor <%
     // we pass the dimensions vector as constant to avoid meddling with it's contents and we reference it with & 
     // to avoid costly copying, and then we write " : shape(dimensions)" to copy all of the contents of dimensions 
     // to the member vector of Tensor "shape".
-      if (shape.empty()) <% // if no dimensions were provided, make a scalar tensor 
+      if (shape_.empty()) <% // if no dimensions were provided, make a scalar tensor
         // I chose this as a fast solution but if we're not allowed to make scalar tensors I can 
         // change this to just throw the book at the user
-        shape = <% 1 %>;
-        data.resize(1);
+        shape_ = <% 1 %>;
+        data_.resize(1);
         return;
       %>
       
@@ -33,9 +37,9 @@ class Tensor <%
       // I don't understand them and I just hate how they look and I hate writing them out in anything other than Python
       // and I hate how you can't explicitly tell what they're doing and I hate how they initialize everything all at once
       // and so yeah, while loop that relies on outside counter to tell it when to finish
-      while (i < static_cast<int>(shape.size())) <%
+      while (i < static_cast<int>(shape_.size())) <%
         // I casted the size of the vector "shape" as an int so we can compare it to the int i with no issues
-        std::size_t dimension = shape<:i:>; // create a variable dimension that is equal to the dimension stored at shape<:i:>
+        std::size_t dimension = shape_<:i:>; // create a variable dimension that is equal to the dimension stored at shape_<:i:>
         if (dimension <= 0) <% // can't have a dimension less than or equal to 0
           throw std::invalid_argument("YOUR DIMENSION IS LESS THAN OR EQUAL TO ZERO. FIX THIS: " + std::to_string(dimension));
           // I just said the same thing 3 times, y'know, just so you understand completely
@@ -58,11 +62,30 @@ class Tensor <%
         %>
         i++;
       %>
-      data.resize(TL);
+      data_.resize(TL);
       // resize the data vector to fit the total capacity for the given dimensions
     %>
 
+    // The shape vector has one entry for each dimension.
+    std::size_t ndim() const <%return shape_.size();%>
+
     std::size_t size() const <%return data_.size();%>
+
+    // Return a read-only reference so callers cannot change the stored shape.
+    const std::vector<std::size_t>& shape() const <%return shape_;%>
+
+    void printInfo() const <%
+      std::cout << "Shape: [";
+      for (std::size_t i = 0; i < ndim(); ++i) <%
+        if (i > 0) <%
+          std::cout << ", ";
+        %>
+        std::cout << shape_[i];
+      %>
+      std::cout << "]\n"
+                << "Dimensions: " << ndim() << '\n'
+                << "Elements: " << size() << '\n';
+    %>
 %>;
 
 #endif

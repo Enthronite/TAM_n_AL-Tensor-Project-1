@@ -2,6 +2,8 @@
 // Warning: I have no idea what I'm doing and I have no idea how this code will interact with anything else
 // so I'll probably need to fix a lot of stuff later on...
 
+#include "Tensor.h"
+
 #include <iostream> // needed to use the basic input and output stream functions, like std::cout and std::cin, and so on
 #include <vector> // needed to use vectors which are dynamic arrays
 #include <cstddef> // needed for unsigned types and stuff, like size_t, but specifcally so we can write std::size_t
