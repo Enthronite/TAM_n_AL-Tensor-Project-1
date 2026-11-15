@@ -86,6 +86,8 @@ class Tensor <%
                 << "Dimensions: " << ndim() << '\n'
                 << "Elements: " << size() << '\n';
     %>
+
+    void reshape(const std::vector<std::size_t>& newShape);
 %>;
 
 #endif
