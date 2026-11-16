@@ -38,14 +38,14 @@ void Tensor<T>::reshape(const std::vector<std::size_t>& newShape) <%
     while (i < static_cast<int>(newShape.size())) <%
         std::size_t dimension = newShape<:i:>; 
         if (dimension <= 0) <% 
-          throw std::invalid_argument("YOUR DIMENSION IS LESS THAN OR EQUAL TO ZERO. FIX THIS: " + std::to_string(dimension));
+          throw std::invalid_argument("Your dimension is less than or equal to zero. Fix this: " + std::to_string(dimension));
         %>
         if (TL2 > std::numeric_limits<std::size_t>::max() / static_cast<std::size_t>(dimension)) <%
-          throw std::overflow_error("INTEGER OVERFLOW DETECTED");
+          throw std::overflow_error("Integer Overflow Detected.");
         %>
         TL2 *= dimension;
         if (TL2 > MAXIMUM_CAPACITY) <%
-          throw std::length_error("YOUR TENSOR IS TOO LONG.");  
+          throw std::length_error("Your tensor is too long.");  
         %>
         i++;
     %>
