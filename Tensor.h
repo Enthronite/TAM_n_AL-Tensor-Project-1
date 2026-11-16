@@ -26,7 +26,8 @@ class Tensor <%
       if (shape_.empty()) <% // if no dimensions were provided, make a scalar tensor
         // I chose this as a fast solution but if we're not allowed to make scalar tensors I can 
         // change this to just throw the book at the user
-        shape_ = <% 1 %>;
+        // EDIT 11/15/26 : I just figured out a scalar tensor has a shape of NOTHING, not 1, so I removed the line
+        // shape_ = <% 1 %>;, because leaving the shape as empty like this: <%%>, is what we need for a scalar tensor
         data_.resize(1);
         return;
       %>
@@ -88,6 +89,7 @@ class Tensor <%
     %>
 
     void reshape(const std::vector<std::size_t>& newShape);
+    void flatten();
 %>;
 
 #endif
