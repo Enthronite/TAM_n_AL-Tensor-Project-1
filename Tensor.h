@@ -42,13 +42,13 @@ class Tensor <%
         // I casted the size of the vector "shape" as an int so we can compare it to the int i with no issues
         std::size_t dimension = shape_<:i:>; // create a variable dimension that is equal to the dimension stored at shape_<:i:>
         if (dimension <= 0) <% // can't have a dimension less than or equal to 0
-          throw std::invalid_argument("YOUR DIMENSION IS LESS THAN OR EQUAL TO ZERO. FIX THIS: " + std::to_string(dimension));
+          throw std::invalid_argument("Your dimension is less than or equal to zero. Fix this: " + std::to_string(dimension));
           // I just said the same thing 3 times, y'know, just so you understand completely
         %>
         if (TL > std::numeric_limits<std::size_t>::max() / static_cast<std::size_t>(dimension)) <%
           // If Total * dim > MAX, then MAX / dim < Total
           // think about it for a second
-          throw std::overflow_error("INTEGER OVERFLOW DETECTED");
+          throw std::overflow_error("Integer Overflow Detected.");
         %>
         TL *= dimension;
         if (TL > MAXIMUM_CAPACITY) <%
@@ -59,7 +59,7 @@ class Tensor <%
           // but after that, we also need to make sure that the final total value isn't stupidly big because if it 
           // is, processing it is going to be a real pain, so we want to check if it exceeds our max capacity,
           // which is a number that I arbritarily decided rather than any actual limit
-          throw std::length_error("YOUR TENSOR IS TOO LONG.");  
+          throw std::length_error("Your tensor is too long.");  
         %>
         i++;
       %>
