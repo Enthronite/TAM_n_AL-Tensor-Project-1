@@ -96,6 +96,8 @@ class Tensor <%
     void print_tensor() const;
 %>;
 
+#include "alex_code.tpp"
+
 #endif
 
 // to use tensor, all you have to do is write "#include "Tensor.h" " at the top of your file
