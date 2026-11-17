@@ -10,9 +10,20 @@
 #include <stdexcept>
 #include <string>
 #include <iostream>
+#include <random> // I need this for testing. 
 // even though we don't need to rewrite the include statements, I'm doing so because it makes it clear 
 // exactly what my file is using
 
+class RandomNumberCreator <%
+    private:
+        std::mt19937 gen;
+    public:
+        RandomNumberCreator() : gen(std::random_device<%%>()) <%%>
+        int get_random_number(int min, int max) <%
+            std::uniform_int_distribution<int> dist(min, max);
+            return dist(gen);
+        %>
+%>;
 
 // even though the class declares a template, since I'm making this function outside of the class, now I have to declare:
 template <typename T>
@@ -36,50 +47,108 @@ void Tensor<T>::reshape(const std::vector<std::size_t>& newShape) <%
     const std::size_t MAXIMUM_CAPACITY = 1000000;
     std::size_t TL2 = 1; // total capacity
     while (i < static_cast<int>(newShape.size())) <%
+
         std::size_t dimension = newShape<:i:>; 
-        if (dimension <= 0) <% 
-          throw std::invalid_argument("Your dimension is less than or equal to zero. Fix this: " + std::to_string(dimension));
-        %>
-        if (TL2 > std::numeric_limits<std::size_t>::max() / static_cast<std::size_t>(dimension)) <%
-          throw std::overflow_error("Integer Overflow Detected.");
-        %>
+
+        if (dimension <= 0) 
+        <% throw std::invalid_argument("Your dimension is less than or equal to zero. Fix this: " + std::to_string(dimension)); %>
+
+        if (TL2 > std::numeric_limits<std::size_t>::max() / static_cast<std::size_t>(dimension)) 
+        <% throw std::overflow_error("Integer Overflow Detected."); %>
+
         TL2 *= dimension;
-        if (TL2 > MAXIMUM_CAPACITY) <%
-          throw std::length_error("Your tensor is too long.");  
-        %>
+
+        if (TL2 > MAXIMUM_CAPACITY) 
+        <% throw std::length_error("Your tensor is too long."); %>
+
         i++;
+
     %>
     // you may notice that I literally just copied the code that I used to initialize a tensor in the class. 
     // that's because like I said before, all we need to do is verify the new shape is the same as the old shape.
     // since the new shape vector doesn't have a size() function like the old shape does, we have to manually 
     // calculate it's size, thankfully, we already have code to calculate the size of a shape, which we use to 
     // make a tensor in the first place. That's why I can just copy the constructor code.
-    if (TL2 != TL) <%
-        throw std::invalid_argument("Your dimensions are invalid. They must equal " + std::to_string(TL) + " when multiplied together.");
-    %>
+    if (TL2 != TL) 
+    <% throw std::invalid_argument("Your dimensions are invalid. They must equal " + std::to_string(TL) + " when multiplied together."); %>
     shape_ = newShape; // and now that we know it's safe, we just make the old shape equal the new shape.
 %>
 
+template <typename T>
+void Tensor<T>::flatten() <% shape_ = <% size() %>; %>
 
 template <typename T>
-void Tensor<T>::flatten() <%
-    shape_ = <% size() %>;
+Tensor<T> Tensor<T>::operator+(const Tensor<T>& other) const <%
+
+    // first, we need to make sure that the shapes of the two tensors are the exact same
+    // thankfully, this is made very simple by the vector class, since it overloads the "==" operator 
+    // to check two or more vectors and make sure they are the same size, have the same elements, and that they're in the same order
+    // so that's all my work done for me :D
+
+    if (other.shape() != shape()) 
+    <% throw std::invalid_argument("Your shapes do not match. You may only add tensors with the same shape."); %>
+
+    Tensor<T> result(shape_); 
+    std::size_t i = 0; while (i < size()) <% result.data_<:i:> = data_<:i:> + other.data_<:i:>; i++; %> return result;
+%>
+
+template <typename T>
+void Tensor<T>::fill() <%
+    RandomNumberCreator rd;
+    std::size_t i = 0;
+    while (i < size()) <% data_<:i:> = rd.get_random_number(1, 100); i++; %>
+%>
+
+template <typename T>
+void Tensor<T>::print_tensor() const<%
+
+    // I thought about making a feature where the tensor would print visually showing it's dimensions but then I considered
+    // that some insane person could create a 4D tensor and gave up
+
+    std::size_t i = 0; while (i < size()) <% std::cout << data_<:i:> << " "; i++; %> std::cout << '\n';
+
 %>
 
 int main() <%
+    //testing invalid tensor parameters
     try <% Tensor<int> invalid(<%2, 0, 4%>);std::cout<<"FAIL: zero dimension was accepted.\n";%>
     catch(const std::invalid_argument& error)<%std::cout<<"PASS: zero dimension rejected: " << error.what()<<'\n';%>
-    std::vector<std::size_t> test = <% 2, 3, 4 %>;
-    Tensor<double> tester({2, 3, 4});
+    //creating tensor tester by making the shape and then the tensor
+    std::vector<std::size_t> test = <% 2, 3, 4 %>; Tensor<int> tester(test);
+    //print info to confirm it worked
     tester.printInfo();
+    //create new shape
     std::vector<std::size_t> newTest2 = <% 7, 4 %>;
+    //test reshaping tensor tester with different element size
     try <% tester.reshape(newTest2);%>
     catch(const std::exception& error) <% std::cerr << "Reshape failed: " << error.what() << '\n'; %>
-// this is very important: you NEED to put your tests for invalid input in a try catch block to prevent the code 
-// from crashing when it encounters an exception
+    // this is very important: you NEED to put your tests for invalid input in a try catch block to prevent the code 
+    // from crashing when it encounters an exception
+    
+    //create tensor shape with valid size
     std::vector<std::size_t> newTest = <% 6, 4 %>;
+    //try to reshape tensor tester
     tester.reshape(newTest);
     tester.printInfo();
     tester.flatten();
     tester.printInfo(); 
+
+    // new tests
+
+    // create shapes
+    std::vector<std::size_t> A = <% 2, 1, 4 %>; std::vector<std::size_t> B = A;
+    //create tensors
+    Tensor<int> Tensor_1(A); Tensor<int> Tensor_2(B);
+    //fill tensors with random values
+    Tensor_1.fill(); Tensor_2.fill();
+    //print tensor 1
+    std::cout << "Tensor 1: " << '\n'; Tensor_1.print_tensor();
+    //print tensor 2
+    std::cout << "Tensor 2: " << '\n'; Tensor_2.print_tensor();
+    //create a new tensor by adding tensor 1 and 2 together
+    Tensor <int> Tensor_3 = Tensor_1 + Tensor_2; std::cout << "Tensor 3: " << '\n'; Tensor_3.print_tensor();
+    //test invalid tensor addition
+    try <%Tensor <int> Tensor_4 = tester + Tensor_1;std::cout<<"FAIL: Invalid shapes added.\n";%>
+    catch(const std::invalid_argument& error) <% std::cout << "PASS: " << error.what() << '\n'; %>
+    
 %>
