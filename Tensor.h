@@ -90,6 +90,10 @@ class Tensor <%
 
     void reshape(const std::vector<std::size_t>& newShape);
     void flatten();
+    Tensor<T> operator+(const Tensor<T>& other) const; 
+// the functions below are purely for testing. If I need to remove them later, please let me know before we turn this in.
+    void fill();
+    void print_tensor() const;
 %>;
 
 #endif
