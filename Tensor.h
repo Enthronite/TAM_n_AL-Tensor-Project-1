@@ -68,14 +68,14 @@ class Tensor <%
     %>
 
     // The shape vector has one entry for each dimension.
-    std::size_t ndim() const <%return shape_.size();%>
+    std::size_t ndim() const <%return shape_.size();%> // return the dimension size, this tells you if a tensor is 1D, 2D, 3D, etc.
 
-    std::size_t size() const <%return data_.size();%>
+    std::size_t size() const <%return data_.size();%> // return the actual size of the tensor
 
     // Return a read-only reference so callers cannot change the stored shape.
-    const std::vector<std::size_t>& shape() const <%return shape_;%>
+    const std::vector<std::size_t>& shape() const <%return shape_;%> // return the dimensions of the tensor
 
-    void printInfo() const <%
+    void printInfo() const <% // prints the shape, dimensions, and size of a tensor, does NOT print the elements
       std::cout << "Shape: [";
       for (std::size_t i = 0; i < ndim(); ++i) <%
         if (i > 0) <%
@@ -88,10 +88,14 @@ class Tensor <%
                 << "Elements: " << size() << '\n';
     %>
 
-    void reshape(const std::vector<std::size_t>& newShape);
-    void flatten();
-    Tensor<T> operator+(const Tensor<T>& other) const; 
-// the functions below are purely for testing. If I need to remove them later, please let me know before we turn this in.
+    void reshape(const std::vector<std::size_t>& newShape); // apply new dimensions to a tensor but keep the size the same
+    void flatten(); // turn a tensor into a 1D vector
+    Tensor<T> operator+(const Tensor<T>& other) const; // add every element of two tensors
+    Tensor<T> operator-(const Tensor<T>& other) const; // subtract every element of two tensors
+    Tensor<T> operator*(const Tensor<T>& other) const; // multiply every element of two tensors
+    T sum() const; // return sum of all elements
+    double mean() const;
+    // the function below is purely for testing. If I need to remove it later, please let me know before we turn it in.
     void fill();
     void print_tensor() const;
 %>;
