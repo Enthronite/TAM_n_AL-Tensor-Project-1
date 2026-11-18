@@ -98,6 +98,7 @@ class Tensor <%
     // the function below is purely for testing. If I need to remove it later, please let me know before we turn it in.
     void fill();
     void print_tensor() const;
+    void set_test_value(std::size_t index, T value) <% data_.at(index) = value; %>
 %>;
 
 #include "alex_code.tpp"
