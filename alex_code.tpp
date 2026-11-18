@@ -7,6 +7,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <iostream> 
 // even though we don't need to rewrite the include statements, I'm doing so because it makes it clear 
 // exactly what my file is using
@@ -75,7 +76,169 @@ Tensor<T> Tensor<T>::operator+(const Tensor<T>& other) const <%
     <% throw std::invalid_argument("Your shapes do not match. You may only add tensors with the same shape."); %>
 
     Tensor<T> result(shape_); 
-    std::size_t i = 0; while (i < size()) <% result.data_<:i:> = data_<:i:> + other.data_<:i:>; i++; %> return result;
+    const T maximum = std::numeric_limits<T>::max();
+    const T minimum = std::numeric_limits<T>::lowest();
+    std::size_t i = 0; while (i < size()) <%
+
+        T a = data_<:i:>;
+        T b = other.data_<:i:>;
+        if constexpr (std::is_integral_v<T>) <%
+            if ((b > 0 && a > maximum - b)) <%
+                throw std::overflow_error("Your element " + std::to_string(b) + " is too large to be added to " + std::to_string(a) + ".");
+            %>
+            if constexpr (std::is_signed_v<T>) <%
+                if (b < 0 && a < minimum - b) <%
+                    throw std::overflow_error("Your element " + std::to_string(b) + " is too small to be added to " + std::to_string(a) + ".");
+                %>
+            %>
+        %>
+        
+        result.data_<:i:> = a + b; 
+        i++; 
+
+    %> 
+    
+    return result;
+%>
+
+template <typename T>
+Tensor<T> Tensor<T>::operator-(const Tensor<T>& other) const <%
+
+    // first, we need to make sure that the shapes of the two tensors are the exact same
+    // thankfully, this is made very simple by the vector class, since it overloads the "==" operator 
+    // to check two or more vectors and make sure they are the same size, have the same elements, and that they're in the same order
+    // so that's all my work done for me :D
+
+    if (other.shape() != shape()) 
+    <% throw std::invalid_argument("Your shapes do not match. You may only add tensors with the same shape."); %>
+
+    Tensor<T> result(shape_); 
+    const T maximum = std::numeric_limits<T>::max();
+    const T minimum = std::numeric_limits<T>::lowest();
+    std::size_t i = 0; while (i < size()) <% 
+    
+        T a = data_<:i:>;
+        T b = other.data_<:i:>;
+        if constexpr (std::is_integral_v<T>) <%
+            if constexpr (std::is_signed_v<T>) <%
+                if (b > 0 && a < minimum + b) <%
+                    throw std::overflow_error("Your element " + std::to_string(b) + " is too big to subtract from " + std::to_string(a) + ".");
+                %> 
+                else if (b < 0 && a > maximum + b) <%
+                    throw std::overflow_error("Your element " + std::to_string(b) + " is too small to subtract from " + std::to_string(a) + ".");
+                %>
+            %> 
+            else if (a < b) <%
+                throw std::overflow_error("You can't store negative numbers in an unsigned data type, and " + std::to_string(a) + " - " + std::to_string(b) + " produces a negative number.");
+            %>
+        %>
+        
+        result.data_<:i:> = a - b; 
+        i++; 
+
+    %> 
+    
+    return result;
+
+%>
+
+template <typename T>
+Tensor<T> Tensor<T>::operator*(const Tensor<T>& other) const <%
+
+    // first, we need to make sure that the shapes of the two tensors are the exact same
+    // thankfully, this is made very simple by the vector class, since it overloads the "==" operator 
+    // to check two or more vectors and make sure they are the same size, have the same elements, and that they're in the same order
+    // so that's all my work done for me :D
+
+    if (other.shape() != shape()) 
+    <% throw std::invalid_argument("Your shapes do not match. You may only add tensors with the same shape."); %>
+
+    Tensor<T> result(shape_);
+    const T maximum = std::numeric_limits<T>::max();
+    const T minimum = std::numeric_limits<T>::lowest(); 
+    std::size_t i = 0; while (i < size()) <% 
+    
+        T a = data_<:i:>;
+        T b = other.data_<:i:>;
+
+        if constexpr (std::is_integral_v<T>) <%
+            if constexpr (std::is_signed_v<T>) <%
+                if (a > 0) <%
+                    if (b > 0 && a > maximum / b) <%
+                        // ex: max = 100, a = 20, b = 10, 100/10 = 10 < a, a(b) = 20(10) > 100
+                        throw std::overflow_error(std::to_string(b) + " is too big to be multiplied to " + std::to_string(a) + ".");
+                    %>
+                    else if (b < 0 && b < minimum / a) <% // here specifically we're checking b < minimum / a instead of a > minimum / b because there is a special edge case if b = -1
+                        // ex: min = -100, a = 20, b = -10, -100/-10 = 10 < a, a(b) = 20(-10) < -100
+                        throw std::overflow_error(std::to_string(b) + " is too small to be multiplied to " + std::to_string(a) + ".");
+                    %>
+                %>
+                else if (a < 0) <%
+                    if (b > 0 && a < minimum / b) <%
+                        // ex: min = -100, a = -20, b = 10, -100/10 = -10 > a, a(b) = -20(10) < -100
+                        throw std::overflow_error(std::to_string(b) + " is too big to be multiplied to " + std::to_string(a) + ".");
+                    %>
+                    if (b < 0 && a < maximum / b) <%
+                        // ex: max = 100, a = -20, b = -10, 100/-10 = -10 > a, a(b) = -20(-10) > 100
+                        throw std::overflow_error(std::to_string(b) + " is too small to be multiplied to " + std::to_string(a) + ".");
+                    %>
+                %>
+            %>
+            else if (b > 0 && a > maximum / b) <%
+                throw std::overflow_error(std::to_string(b) + " is too big to be multiplied to " + std::to_string(a) + ".");
+            %>
+            else if (b < 0) <%
+                throw std::overflow_error(std::to_string(b) + " is too small to be multiplied to " + std::to_string(a) + ".");
+                // the reason why I'm throwing an overflow error here instead of an invalid argument error is because technically
+                // a negative b value a valid argument, but trying to multiply a unsigned data type to a negative signed data type 
+                // will cause unsigned wrap around, because unsigned types can't store negative numbers, so tecnhically that's an 
+                // overflow error because by trying to go below 0, you're flowing over the minimum limit and forcing a to wrap around
+                // to an extremely large value. Think of how in old games, going below 0 would cause the number to shoot back to 255.
+            %>
+        %>
+        
+        result.data_<:i:> = a * b; 
+        i++; 
+
+    %> 
+    
+    return result;
+
+%>
+
+template <typename T>
+T Tensor<T>::sum() const <%
+    std::size_t i = 0;
+    T total<%%>;
+    while (i < size()) <%
+        T value = data_<:i:>;
+
+        if constexpr (std::is_integral_v<T>) <%
+            if (value > 0 && total > std::numeric_limits<T>::max() - value) <%
+                throw std::overflow_error("Sum exceeds the maximum value.");
+            %>
+        %>
+
+        if constexpr (std::is_signed_v<T>) <%
+            if (value < 0 && total < std::numeric_limits<T>::lowest() - value) <%
+                throw std::overflow_error("Sum falls below the minimum value.");
+            %>
+        %>
+
+        total += value;
+        i++;
+    %>
+    return total;
+%>
+
+template <typename T>
+double Tensor<T>::mean() const <% 
+
+    if(size() == 0)<% throw std::domain_error("Cannot perform mean operation on empty tensor."); %>
+
+    double total = sum(); return total/size(); 
+    // we have to write "double total = sum()" first to avoid losing the decimals (as opposed to return sum()/size())
+
 %>
 
 template <typename T>
