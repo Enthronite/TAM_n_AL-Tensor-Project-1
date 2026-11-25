@@ -1,5 +1,3 @@
-#include "TA-classMain.cpp"
-
 #ifndef TENSOR_H
 #define TENSOR_H
 // we include the statements above to prevent repeated definitions when the header is included multiple times in one translation unit
@@ -15,8 +13,21 @@
 template <typename T> // this makes the WHOLE CLASS a template, so we don't have to redefine T at all
 class Tensor <%
   private: // stuff below is pretty self explanatory
-    std::vector<std::size_t> shape_; std::vector<T> data_;
+    std::vector<std::size_t> shape_; 
+    std::vector<T> data_;
+
   public:
+
+
+    // These 'at' overloads allow us to access an element using multidimensional indices.
+    // The 1st overload returns a modifiable reference, allowing the element to
+    // be read or changed. The 2nd overload is for 'const' tensors and returns a
+    // read-only reference. Both throw an exception if the indices are invalid.
+    T& at(const std::vector<std::size_t>& indices); 
+    const T& at(const std::vector<std::size_t>& indices) const;
+
+    
+
     explicit Tensor(const std::vector<std::size_t>& dimensions) : shape_(dimensions) <%
     // we write explicit to say you must EXPLICITLY request construction, not implicitly 
     // consider the following examples: Tensor a(dimensions) -> OKAY, Tensor c = dimensions -> NOT OKAY
@@ -101,7 +112,7 @@ class Tensor <%
     void set_test_value(std::size_t index, T value) <% data_.at(index) = value; %>
 %>;
 
-#include "alex_code.tpp"
+#include "Tensor_imp.tpp"
 
 #endif
 

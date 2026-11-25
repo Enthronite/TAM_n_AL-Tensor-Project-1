@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rng.h"
+#include "Tensor.h"
 
 #include <vector>
 #include <cstddef>
@@ -61,8 +62,50 @@ void Tensor<T>::reshape(const std::vector<std::size_t>& newShape) <%
     shape_ = newShape; // and now that we know it's safe, we just make the old shape equal the new shape.
 %>
 
+// Convert the tensor into a one-dimensional tensor without changing its data.
+// The new shape contains one dimension equal to the total number of elements.
 template <typename T>
 void Tensor<T>::flatten() <% shape_ = <% size() %>; %>
+
+// Access an element for reading or modification.
+template <typename T>
+T& Tensor<T>::at(const std::vector<std::size_t>& indices) {
+    if (indices.size() != shape_.size()) {
+        throw std::invalid_argument(
+            "The number of indices must match the number of tensor dimensions.");
+    }
+
+    std::size_t flatIndex = 0;
+
+    for (std::size_t i = 0; i < indices.size(); ++i) {
+        if (indices[i] >= shape_[i]) {
+            throw std::out_of_range("Tensor index is out of range.");
+        }
+
+        flatIndex = flatIndex * shape_[i] + indices[i];
+    }
+
+    return data_.at(flatIndex);
+}
+
+// Access an element of a const tensor without allowing modification.
+template <typename T>
+const T& Tensor<T>::at(const std::vector<std::size_t>& indices) const {
+    if (indices.size() != shape_.size()) {
+        throw std::invalid_argument(
+            "The number of indices must match the number of tensor dimensions.");
+    }
+
+    std::size_t flatIndex = 0;
+    for (std::size_t i = 0; i < indices.size(); ++i) {
+        if (indices[i] >= shape_[i]) {
+            throw std::out_of_range("Tensor index is out of range.");
+        }
+        flatIndex = flatIndex * shape_[i] + indices[i];
+    }
+
+    return data_.at(flatIndex);
+}
 
 template <typename T>
 Tensor<T> Tensor<T>::operator+(const Tensor<T>& other) const <%

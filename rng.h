@@ -1,6 +1,8 @@
 #ifndef RANDOM_NUMBER_CREATOR_H
 #define RANDOM_NUMBER_CREATOR_H
 
+#include <random>
+
 class RandomNumberCreator <%
     private:
         std::mt19937 gen;
