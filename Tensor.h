@@ -26,7 +26,8 @@ class Tensor <%
       if (shape_.empty()) <% // if no dimensions were provided, make a scalar tensor
         // I chose this as a fast solution but if we're not allowed to make scalar tensors I can 
         // change this to just throw the book at the user
-        shape_ = <% 1 %>;
+        // EDIT 11/15/26 : I just figured out a scalar tensor has a shape of NOTHING, not 1, so I removed the line
+        // shape_ = <% 1 %>;, because leaving the shape as empty like this: <%%>, is what we need for a scalar tensor
         data_.resize(1);
         return;
       %>
@@ -41,13 +42,13 @@ class Tensor <%
         // I casted the size of the vector "shape" as an int so we can compare it to the int i with no issues
         std::size_t dimension = shape_<:i:>; // create a variable dimension that is equal to the dimension stored at shape_<:i:>
         if (dimension <= 0) <% // can't have a dimension less than or equal to 0
-          throw std::invalid_argument("YOUR DIMENSION IS LESS THAN OR EQUAL TO ZERO. FIX THIS: " + std::to_string(dimension));
+          throw std::invalid_argument("Your dimension is less than or equal to zero. Fix this: " + std::to_string(dimension));
           // I just said the same thing 3 times, y'know, just so you understand completely
         %>
         if (TL > std::numeric_limits<std::size_t>::max() / static_cast<std::size_t>(dimension)) <%
           // If Total * dim > MAX, then MAX / dim < Total
           // think about it for a second
-          throw std::overflow_error("INTEGER OVERFLOW DETECTED");
+          throw std::overflow_error("Integer Overflow Detected.");
         %>
         TL *= dimension;
         if (TL > MAXIMUM_CAPACITY) <%
@@ -58,7 +59,7 @@ class Tensor <%
           // but after that, we also need to make sure that the final total value isn't stupidly big because if it 
           // is, processing it is going to be a real pain, so we want to check if it exceeds our max capacity,
           // which is a number that I arbritarily decided rather than any actual limit
-          throw std::length_error("YOUR TENSOR IS TOO LONG.");  
+          throw std::length_error("Your tensor is too long.");  
         %>
         i++;
       %>
@@ -67,14 +68,14 @@ class Tensor <%
     %>
 
     // The shape vector has one entry for each dimension.
-    std::size_t ndim() const <%return shape_.size();%>
+    std::size_t ndim() const <%return shape_.size();%> // return the dimension size, this tells you if a tensor is 1D, 2D, 3D, etc.
 
-    std::size_t size() const <%return data_.size();%>
+    std::size_t size() const <%return data_.size();%> // return the actual size of the tensor
 
     // Return a read-only reference so callers cannot change the stored shape.
-    const std::vector<std::size_t>& shape() const <%return shape_;%>
+    const std::vector<std::size_t>& shape() const <%return shape_;%> // return the dimensions of the tensor
 
-    void printInfo() const <%
+    void printInfo() const <% // prints the shape, dimensions, and size of a tensor, does NOT print the elements
       std::cout << "Shape: [";
       for (std::size_t i = 0; i < ndim(); ++i) <%
         if (i > 0) <%
@@ -86,7 +87,21 @@ class Tensor <%
                 << "Dimensions: " << ndim() << '\n'
                 << "Elements: " << size() << '\n';
     %>
+
+    void reshape(const std::vector<std::size_t>& newShape); // apply new dimensions to a tensor but keep the size the same
+    void flatten(); // turn a tensor into a 1D vector
+    Tensor<T> operator+(const Tensor<T>& other) const; // add every element of two tensors
+    Tensor<T> operator-(const Tensor<T>& other) const; // subtract every element of two tensors
+    Tensor<T> operator*(const Tensor<T>& other) const; // multiply every element of two tensors
+    T sum() const; // return sum of all elements
+    double mean() const;
+    // the function below is purely for testing. If I need to remove it later, please let me know before we turn it in.
+    void fill();
+    void print_tensor() const;
+    void set_test_value(std::size_t index, T value) <% data_.at(index) = value; %>
 %>;
+
+#include "alex_code.tpp"
 
 #endif
 
