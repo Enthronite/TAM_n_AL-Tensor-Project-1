@@ -26,11 +26,10 @@ class Tensor <%
     T& at(const std::vector<std::size_t>& indices); 
     const T& at(const std::vector<std::size_t>& indices) const;
 
-    explicit Tensor() <%
+    Tensor() <%
       // this is the basic Tensor constructor, for when you want to intitialize a simple scalar tensor
       // to use it, you simply write "Tensor();", and then you have an empty tensor with size 1
       data_.resize(1);
-      return;
     %>
 
     explicit Tensor(const std::vector<std::size_t>& dimensions) : shape_(dimensions) <%
