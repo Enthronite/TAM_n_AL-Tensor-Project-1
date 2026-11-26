@@ -175,4 +175,7 @@ int main() <%
     try <% Tensor<unsigned int> result =  unsubtes1 - unsubtes2; std::cout << "Fail: unsigned wraparound was not caught.\n"; %>
     catch ( const std::overflow_error& error )
     <% std::cout << "Pass: " << error.what() << '\n'; %>
+    // basic tensor test below
+    Tensor <double> scallar;
+    scallar.printInfo();
 %>

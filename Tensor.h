@@ -26,7 +26,11 @@ class Tensor <%
     T& at(const std::vector<std::size_t>& indices); 
     const T& at(const std::vector<std::size_t>& indices) const;
 
-    
+    Tensor() <%
+      // this is the basic Tensor constructor, for when you want to intitialize a simple scalar tensor
+      // to use it, you simply write "Tensor();", and then you have an empty tensor with size 1
+      data_.resize(1);
+    %>
 
     explicit Tensor(const std::vector<std::size_t>& dimensions) : shape_(dimensions) <%
     // we write explicit to say you must EXPLICITLY request construction, not implicitly 
@@ -44,7 +48,7 @@ class Tensor <%
       %>
       
       std::size_t TL = 1; // total capacity
-      const std::size_t MAXIMUM_CAPACITY = 1000000;
+      const std::size_t MAXIMUM_CAPACITY = std::numeric_limits<int>::max();
       int i = 0; // you may be wondering why I chose to do this. I hate for loops. That's it.
       // I don't understand them and I just hate how they look and I hate writing them out in anything other than Python
       // and I hate how you can't explicitly tell what they're doing and I hate how they initialize everything all at once
