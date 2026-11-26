@@ -1,4 +1,5 @@
 #include "Tensor.h"
+#include "rng.h"
 
 #include <cassert>
 #include <sstream>
@@ -63,5 +64,7 @@ int main()
     assert(emptyShape.size() == 1);
     assert(emptyShape.shape().empty());
     std::cout << "Tensor information tests passed.\n";
+
+
     return 0;
 }
