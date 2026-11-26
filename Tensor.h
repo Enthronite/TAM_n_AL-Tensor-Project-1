@@ -48,7 +48,7 @@ class Tensor <%
       %>
       
       std::size_t TL = 1; // total capacity
-      const std::size_t MAXIMUM_CAPACITY = 1000000;
+      const std::size_t MAXIMUM_CAPACITY = std::numeric_limits<int>::max();
       int i = 0; // you may be wondering why I chose to do this. I hate for loops. That's it.
       // I don't understand them and I just hate how they look and I hate writing them out in anything other than Python
       // and I hate how you can't explicitly tell what they're doing and I hate how they initialize everything all at once
